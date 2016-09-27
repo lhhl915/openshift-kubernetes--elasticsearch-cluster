@@ -139,6 +139,8 @@ status:
 ### 测试：
 ```
 oc expose svc es #用于获取route，即$URL
+
+curl http://$URL
 ```
 
 
