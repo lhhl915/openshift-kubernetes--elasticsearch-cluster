@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubernetes.io/created-by: |
+      {"kind":"SerializedReference","apiVersion":"v1","reference":{"kind":"DaemonSet","namespace":"logging","name":"logging-fluentd","uid":"b25a43cb-524c-11e6-9d6e-fa163d0e0615","apiVersion":"extensions","resourceVersion":"131085815"}}
+    openshift.io/scc: privileged
+  creationTimestamp: null
+  generateName: logging-fluentd-
+  labels:
+    component: fluentd
+    provider: openshift
+spec:
+  containers:
+  - env:
+    - name: K8S_HOST_URL
+      value: https://kubernetes.default.svc.cluster.local
+    - name: ES_HOST
+      value: logging-es
+    - name: ES_PORT
+      value: "9200"
+    - name: ES_CLIENT_CERT
+      value: /etc/fluent/keys/cert
+    - name: ES_CLIENT_KEY
+      value: /etc/fluent/keys/key
+    - name: ES_CA
+      value: /etc/fluent/keys/ca
+    - name: OPS_HOST
+      value: logging-es
+    - name: OPS_PORT
+      value: "9200"
+    - name: OPS_CLIENT_CERT
+      value: /etc/fluent/keys/cert
+    - name: OPS_CLIENT_KEY
+      value: /etc/fluent/keys/key
+    - name: OPS_CA
+      value: /etc/fluent/keys/ca
+    - name: ES_COPY
+      value: "false"
+    - name: ES_COPY_HOST
+    - name: ES_COPY_PORT
+    - name: ES_COPY_SCHEME
+      value: https
+    - name: ES_COPY_CLIENT_CERT
+    - name: ES_COPY_CLIENT_KEY
+    - name: ES_COPY_CA
+    - name: ES_COPY_USERNAME
+    - name: ES_COPY_PASSWORD
+    - name: OPS_COPY_HOST
+    - name: OPS_COPY_PORT
+    - name: OPS_COPY_SCHEME
+      value: https
+    - name: OPS_COPY_CLIENT_CERT
+    - name: OPS_COPY_CLIENT_KEY
+    - name: OPS_COPY_CA
+    - name: OPS_COPY_USERNAME
+    - name: OPS_COPY_PASSWORD
+    image: registry.dataos.io/openshift/origin-logging-fluentd:latest
+    imagePullPolicy: Always
+    name: fluentd-elasticsearch
+    resources:
+      limits:
+        cpu: 100m
+      requests:
+        cpu: 100m
+    securityContext:
+      privileged: true
+    terminationMessagePath: /dev/termination-log
+    volumeMounts:
+    - mountPath: /var/log
+      name: varlog
+    - mountPath: /var/lib/docker/containers
+      name: varlibdockercontainers
+      readOnly: true
+    - mountPath: /etc/fluent/keys
+      name: certs
+      readOnly: true
+    - mountPath: /etc/docker-hostname
+      name: dockerhostname
+      readOnly: true
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: aggregated-logging-fluentd-token-25ktb
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  host: oc-node11.jcloud.local
+  imagePullSecrets:
+  - name: aggregated-logging-fluentd-dockercfg-t4tmr
+  nodeName: oc-node11.jcloud.local
+  nodeSelector:
+    logging-infra-fluentd: "true"
+  restartPolicy: Always
+  securityContext: {}
+  serviceAccount: aggregated-logging-fluentd
+  serviceAccountName: aggregated-logging-fluentd
+  terminationGracePeriodSeconds: 30
+  volumes:
+  - hostPath:
+      path: /var/log
+    name: varlog
+  - hostPath:
+      path: /var/lib/docker/containers
+    name: varlibdockercontainers
+  - name: certs
+    secret:
+      secretName: logging-fluentd
+  - hostPath:
+      path: /etc/hostname
+    name: dockerhostname
+  - name: aggregated-logging-fluentd-token-25ktb
+    secret:
+      secretName: aggregated-logging-fluentd-token-25ktb
+status:
+  phase: Pending

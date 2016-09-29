@@ -36,7 +36,7 @@ spec:
         - -Des.discovery.zen.minimum_master_nodes=2
         - -Des.client.transport.ping_timeout=60s
         - -Des.discovery.zen.ping.unicast.hosts=es1,es2,es3
-        image: registry.dataos.io/library/elasticsearch:2.3
+        image: registry.dataos.io/liuliu/elasticsearch:2.4.0 
         imagePullPolicy: IfNotPresent
         name: es-cluster1
         resources: {}

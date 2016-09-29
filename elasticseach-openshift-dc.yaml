@@ -1,0 +1,88 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  creationTimestamp: null
+  labels:
+    component: es
+    logging-infra: elasticsearch
+    provider: openshift
+  name: logging-es-3x3h88y5
+spec:
+  replicas: 1
+  selector:
+    component: es
+    deployment: logging-es-3x3h88y5
+    provider: openshift
+  strategy:
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        component: es
+        deployment: logging-es-3x3h88y5
+        provider: openshift
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_TRUST_CERT
+          value: "true"
+        - name: SERVICE_DNS
+          value: logging-es-cluster
+        - name: CLUSTER_NAME
+          value: logging-es
+        - name: INSTANCE_RAM
+          value: 8G
+        - name: NODE_QUORUM
+          value: "2"
+        - name: RECOVER_AFTER_NODES
+          value: "2"
+        - name: RECOVER_EXPECTED_NODES
+          value: "3"
+        - name: RECOVER_AFTER_TIME
+          value: 5m
+        image: registry.dataos.io/openshift/origin-logging-elasticsearch:latest
+        imagePullPolicy: Always
+        name: elasticsearch
+        ports:
+        - containerPort: 9200
+          name: restapi
+          protocol: TCP
+        - containerPort: 9300
+          name: cluster
+          protocol: TCP
+        resources:
+          limits:
+            memory: 8Gi
+          requests:
+            memory: 512Mi
+        terminationMessagePath: /dev/termination-log
+        volumeMounts:
+        - mountPath: /etc/elasticsearch/keys
+          name: elasticsearch
+          readOnly: true
+        - mountPath: /elasticsearch/persistent
+          name: elasticsearch-storage
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      serviceAccount: aggregated-logging-elasticsearch
+      serviceAccountName: aggregated-logging-elasticsearch
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: elasticsearch
+        secret:
+          secretName: logging-elasticsearch
+      - emptyDir: {}
+        name: elasticsearch-storage
+  test: false
+  triggers:
+  - type: ConfigChange
+status: {}

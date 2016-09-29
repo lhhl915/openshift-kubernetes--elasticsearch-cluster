@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  creationTimestamp: null
+  labels:
+    component: curator
+    logging-infra: curator
+    provider: openshift
+  name: logging-curator
+spec:
+  replicas: 1
+  selector:
+    component: curator
+    provider: openshift
+  strategy:
+    recreateParams:
+      timeoutSeconds: 600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        component: curator
+        provider: openshift
+      name: curator
+    spec:
+      containers:
+      - env:
+        - name: K8S_HOST_URL
+          value: https://kubernetes.default.svc.cluster.local
+        - name: ES_HOST
+          value: logging-es
+        - name: ES_PORT
+          value: "9200"
+        - name: ES_CLIENT_CERT
+          value: /etc/curator/keys/cert
+        - name: ES_CLIENT_KEY
+          value: /etc/curator/keys/key
+        - name: ES_CA
+          value: /etc/curator/keys/ca
+        - name: CURATOR_DEFAULT_DAYS
+          value: "30"
+        - name: CURATOR_CONF_LOCATION
+          value: /etc/curator
+        - name: CURATOR_RUN_HOUR
+          value: "0"
+        - name: CURATOR_RUN_MINUTE
+          value: "0"
+        image: registry.dataos.io/openshift/origin-logging-curator@sha256:f0fd78b16a72d88b5f29db31b9a9e0d7c0f9248121dc0d0d18d271fa4349a289
+        imagePullPolicy: Always
+        name: curator
+        resources:
+          limits:
+            cpu: 100m
+        terminationMessagePath: /dev/termination-log
+        volumeMounts:
+        - mountPath: /etc/curator/keys
+          name: certs
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      securityContext: {}
+      serviceAccount: aggregated-logging-curator
+      serviceAccountName: aggregated-logging-curator
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: certs
+        secret:
+          secretName: logging-curator
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - curator
+      from:
+        kind: ImageStreamTag
+        name: logging-curator:latest
+    type: ImageChange
+status: {}

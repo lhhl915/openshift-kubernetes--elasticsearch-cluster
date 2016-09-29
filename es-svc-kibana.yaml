@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    dadafoundry.io/create-by: liuhl
+  creationTimestamp: null
+  labels:
+    app: kibana
+  name: kibana
+spec:
+  ports:
+  - name: 5601-tcp
+    port: 5601
+    protocol: TCP
+    targetPort: 5601
+  selector:
+    app: kibana
+    deploymentconfig: kibana
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}
